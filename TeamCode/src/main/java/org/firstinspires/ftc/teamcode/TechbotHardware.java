@@ -29,7 +29,10 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.view.Display;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 //import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -83,6 +86,7 @@ public class TechbotHardware {
     public DcMotor rightDrive = null;
     public DcMotor leftBackDrive = null;
     public DcMotor rightBackDrive = null;
+
     /*
     public DcMotor wobbleArmDrive = null;
     public DcMotor shooterDriveFront = null;
@@ -218,7 +222,7 @@ public class TechbotHardware {
         leftBackDrive.setPower(spinDrive);
         rightBackDrive.setPower(spinDrive);
     }
-
+/*
     public void stop() {
         this.drive(0);
     }
@@ -237,13 +241,14 @@ public class TechbotHardware {
             // do nothing
         }
     }
-
+/*
     public void spinByTime(double spinDrive, double spinTime) {
         this.spin(spinDrive);
         while (runtime.seconds() < spinDrive) {
             // do nothing
         }
     }
+ */
 
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
@@ -257,6 +262,17 @@ public class TechbotHardware {
         rightDrive = hwMap.get(DcMotor.class, "Right front motor");
         leftBackDrive = hwMap.get(DcMotor.class, "Left back motor");
         rightBackDrive = hwMap.get(DcMotor.class, "Right back motor");
+        //*code from imu sample code
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        imu = hwMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
 //        wobbleArmDrive = hwMap.get(DcMotor.class,"wobbleArm");
 //        shooterDriveFront = hwMap.get(DcMotor.class, "shooterArmFront");
 //        shooterDriveBack = hwMap.get(DcMotor.class, "shooterArmBack");
@@ -331,8 +347,8 @@ public class TechbotHardware {
             while (leftDrive.isBusy() && rightDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy()) {
 
                 // adjust relative speed based on heading error.
-                error = getError(angle);
-                steer = getSteer(error, P_DRIVE_COEFF);
+                error = this.getError(angle);
+                steer = this.getSteer(error, P_DRIVE_COEFF);
 
                 // if driving in reverse, the motor correction also needs to be reversed
                 if (distance < 0)
@@ -340,6 +356,8 @@ public class TechbotHardware {
 
                 leftSpeed = speed - steer;
                 rightSpeed = speed + steer;
+                leftBackSpeed = speed - steer;
+                rightBackSpeed = speed + steer;
 
                 // Normalize speeds if either one exceeds +/- 1.0;
                 max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
@@ -347,19 +365,20 @@ public class TechbotHardware {
                 {
                     leftSpeed /= max;
                     rightSpeed /= max;
+                    leftBackSpeed /= max;
+                    rightBackSpeed /= max;
                 }
 
                 leftDrive.setPower(leftSpeed);
                 rightDrive.setPower(rightSpeed);
-                leftBackDrive.setPower(leftSpeed);
-                rightBackDrive.setPower(rightSpeed);
+                leftBackDrive.setPower(leftBackSpeed);
+                rightBackDrive.setPower(rightBackSpeed);
 
                 // Display drive status for the driver.
                 telemetry.addData("Err/St",  "%5.1f/%5.1f",  error, steer);
                 telemetry.addData("Target",  "%7d:%7d",      newLeftTarget,  newRightTarget, newLeftBackTarget, newRightBackTarget);
-                telemetry.addData("Actual",  "%7d:%7d",      leftDrive.getCurrentPosition(),
-                        rightDrive.getCurrentPosition());
-                telemetry.addData("Speed",   "%5.2f:%5.2f",  leftSpeed, rightSpeed);
+                telemetry.addData("Actual",  "%7d:%7d",      leftDrive.getCurrentPosition(), rightDrive.getCurrentPosition(), leftBackDrive.getCurrentPosition(), rightBackDrive.getCurrentPosition());
+                telemetry.addData("Speed",   "%5.2f:%5.2f",  leftSpeed, rightSpeed, leftBackSpeed,rightBackSpeed);
                 telemetry.update();
             }
 
@@ -379,9 +398,9 @@ public class TechbotHardware {
     public void gyroTurn (  double speed, double angle) {
 
         // keep looping while we are still active, and not on heading.
-        while (!onHeading(speed, angle, P_TURN_COEFF)) {
+        while (!this.onHeading(speed, angle, P_TURN_COEFF)) {
             // Update telemetry & Allow time for other processes to run.
-            telemetry.update();
+          //  telemetry.update();
         }
     }
     public void gyroHold( double speed, double angle, double holdTime) {
@@ -392,8 +411,8 @@ public class TechbotHardware {
         holdTimer.reset();
         while (holdTimer.time() < holdTime) {
             // Update telemetry & Allow time for other processes to run.
-            onHeading(speed, angle, P_TURN_COEFF);
-            telemetry.update();
+            this.onHeading(speed, angle, P_TURN_COEFF);
+           // telemetry.update();
         }
 
         // Stop all motion;
@@ -402,7 +421,7 @@ public class TechbotHardware {
         leftBackDrive.setPower(0);
         rightBackDrive.setPower(0);
     }
-    boolean onHeading(double speed, double angle, double PCoeff) {
+    public boolean onHeading(double speed, double angle, double PCoeff) {
         double   error ;
         double   steer ;
         boolean  onTarget = false ;
@@ -412,7 +431,7 @@ public class TechbotHardware {
         double rightBackSpeed;
 
         // determine turn power based on +/- error
-        error = getError(angle);
+        error = this.getError(angle);
 
         if (Math.abs(error) <= HEADING_THRESHOLD) {
             steer = 0.0;
@@ -437,9 +456,9 @@ public class TechbotHardware {
         rightBackDrive.setPower(rightBackSpeed);
 
         // Display it for the driver.
-        telemetry.addData("Target", "%5.2f", angle);
-        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
-        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed, leftBackSpeed, rightBackSpeed);
+//        telemetry.addData("Target", "%5.2f", angle);
+//        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
+//        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed, leftBackSpeed, rightBackSpeed);
 
         return onTarget;
     }
@@ -457,64 +476,64 @@ public class TechbotHardware {
     public double getSteer(double error, double PCoeff) {
         return Range.clip(error * PCoeff, -1, 1);
     }
-    void composeTelemetry() {
-
-        // At the beginning of each telemetry update, grab a bunch of data
-        // from the IMU that we will then display in separate lines.
-        telemetry.addAction(new Runnable() { @Override public void run()
-        {
-            // Acquiring the angles is relatively expensive; we don't want
-            // to do that in each of the three items that need that info, as that's
-            // three times the necessary expense.
-            angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            gravity  = imu.getGravity();
-        }
-        });
-
-        telemetry.addLine()
-                .addData("status", new Func<String>() {
-                    @Override public String value() {
-                        return imu.getSystemStatus().toShortString();
-                    }
-                })
-                .addData("calib", new Func<String>() {
-                    @Override public String value() {
-                        return imu.getCalibrationStatus().toString();
-                    }
-                });
-
-        telemetry.addLine()
-                .addData("heading", new Func<String>() {
-                    @Override public String value() {
-                        return formatAngle(angles.angleUnit, angles.firstAngle);
-                    }
-                })
-                .addData("roll", new Func<String>() {
-                    @Override public String value() {
-                        return formatAngle(angles.angleUnit, angles.secondAngle);
-                    }
-                })
-                .addData("pitch", new Func<String>() {
-                    @Override public String value() {
-                        return formatAngle(angles.angleUnit, angles.thirdAngle);
-                    }
-                });
-
-        telemetry.addLine()
-                .addData("grvty", new Func<String>() {
-                    @Override public String value() {
-                        return gravity.toString();
-                    }
-                })
-                .addData("mag", new Func<String>() {
-                    @Override public String value() {
-                        return String.format(Locale.getDefault(), "%.3f",
-                                Math.sqrt(gravity.xAccel*gravity.xAccel
-                                        + gravity.yAccel*gravity.yAccel
-                                        + gravity.zAccel*gravity.zAccel));
-                    }
-                });
-    }
+//    void composeTelemetry() {
+//
+//        // At the beginning of each telemetry update, grab a bunch of data
+//        // from the IMU that we will then display in separate lines.
+//        telemetry.addAction(new Runnable() { @Override public void run()
+//        {
+//            // Acquiring the angles is relatively expensive; we don't want
+//            // to do that in each of the three items that need that info, as that's
+//            // three times the necessary expense.
+//            angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+//            gravity  = imu.getGravity();
+//        }
+//        });
+//
+//        telemetry.addLine()
+//                .addData("status", new Func<String>() {
+//                    @Override public String value() {
+//                        return imu.getSystemStatus().toShortString();
+//                    }
+//                })
+//                .addData("calib", new Func<String>() {
+//                    @Override public String value() {
+//                        return imu.getCalibrationStatus().toString();
+//                    }
+//                });
+//
+//        telemetry.addLine()
+//                .addData("heading", new Func<String>() {
+//                    @Override public String value() {
+//                        return formatAngle(angles.angleUnit, angles.firstAngle);
+//                    }
+//                })
+//                .addData("roll", new Func<String>() {
+//                    @Override public String value() {
+//                        return formatAngle(angles.angleUnit, angles.secondAngle);
+//                    }
+//                })
+//                .addData("pitch", new Func<String>() {
+//                    @Override public String value() {
+//                        return formatAngle(angles.angleUnit, angles.thirdAngle);
+//                    }
+//                });
+//
+//        telemetry.addLine()
+//                .addData("grvty", new Func<String>() {
+//                    @Override public String value() {
+//                        return gravity.toString();
+//                    }
+//                })
+//                .addData("mag", new Func<String>() {
+//                    @Override public String value() {
+//                        return String.format(Locale.getDefault(), "%.3f",
+//                                Math.sqrt(gravity.xAccel*gravity.xAccel
+//                                        + gravity.yAccel*gravity.yAccel
+//                                        + gravity.zAccel*gravity.zAccel));
+//                    }
+//                });
+//    }
     String formatAngle(AngleUnit angleUnit, double angle) {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
