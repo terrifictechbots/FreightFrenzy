@@ -82,6 +82,7 @@ public class KellyHardware {
     public DcMotor rightBackDrive = null;
     public DcMotor pickupArmDrive = null;
     public DcMotor duckArmDrive = null;
+    public DcMotor rightduckArmDrive = null;
 
 
 
@@ -202,6 +203,10 @@ public class KellyHardware {
         rightBackDrive.setPower(spinDrive);
     }
 
+    public void duckspin(double duckspinDrive){
+        duckArmDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightduckArmDrive.setDirection(DcMotor.Direction.FORWARD);
+    }
     public void stop() {
         this.drive(0);
     }
@@ -242,10 +247,11 @@ public class KellyHardware {
         rightBackDrive = hwMap.get(DcMotor.class, "Right back motor");
         pickupArmDrive = hwMap.get (DcMotor.class, "Pickup arm");
         duckArmDrive = hwMap.get(DcMotor.class, "Duck arm");
+        rightduckArmDrive = hwMap.get(DcMotor.class, "Right duck arm");
 
         servoPickupClamp = hwMap.get (Servo.class, "Pickup clamp");
 
-        /*leftDrive.setDirection(DcMotor.Direction.FORWARD);
+      /*  leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.REVERSE);*/
@@ -255,6 +261,7 @@ public class KellyHardware {
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
         pickupArmDrive.setDirection(DcMotor.Direction.FORWARD);
         duckArmDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightduckArmDrive.setDirection(DcMotor.Direction.FORWARD);
 
         servoPickupClamp.setPosition(0.5);
 

@@ -91,14 +91,16 @@ public class KellyTeleOp extends LinearOpMode {
             double slideSpower;
             double spinPowerCW;
             double driveSPower;
+            double duckspinPower;
 
 
-            slidePower = -gamepad1.right_stick_x;
-            drivePower = -gamepad1.right_stick_y;
-            driveSPower = -gamepad1.left_stick_y;
-            spinPowerCCW = gamepad1.left_trigger;
-            slideSpower = -gamepad1.left_stick_x;
-            spinPowerCW = -gamepad1.right_trigger;
+            slidePower = gamepad1.right_stick_x;
+            drivePower = gamepad1.right_stick_y;
+            driveSPower = gamepad1.left_stick_y;
+            spinPowerCCW = -gamepad1.left_trigger;
+            slideSpower = gamepad1.left_stick_x;
+            spinPowerCW = gamepad1.right_trigger;
+            duckspinPower = gamepad2.right_trigger;
 
             // send the info back to driver station using telemetry function.
             // if the digital channel returns true it's HIGH and the button is unpressed.
@@ -147,16 +149,14 @@ public class KellyTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.left_stick_y < -0.2) {
-                Kelly.pickupArmDrive.setPower(-.9);
+                Kelly.pickupArmDrive.setPower(-1);
             } else if (gamepad2.left_stick_y < 0.2 && gamepad2.left_stick_y > -0.2) {
                 Kelly.pickupArmDrive.setPower(0);
             }
 
 
             if(gamepad2.right_trigger > 0.2) {
-                Kelly.duckArmDrive.setPower(1);
-            } else if (gamepad2.left_stick_y < 0.2 && gamepad2.left_stick_y > -0.2) {
-                Kelly.duckArmDrive.setPower(0);
+                Kelly.duckspin(duckspinPower);
             }
             }
         }

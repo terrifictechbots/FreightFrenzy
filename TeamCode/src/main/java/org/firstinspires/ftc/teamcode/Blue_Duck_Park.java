@@ -3,24 +3,21 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.transition.Slide;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-
-import java.util.Locale;
 
 /**
  * This file illustrates the concept of driving a path based on Gyro heading and encoder counts.
@@ -55,19 +52,9 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.teamcode.KellyHardware;
-
-@Autonomous(name="GOODPushbot: Auto Drive By Gyro", group="Kelly")
+@Autonomous(name="Blue Duck Park", group="Kelly")
 //@Disabled
-public class GOODPushbotAutoDriveByGyro_Linear extends LinearOpMode {
+public class Blue_Duck_Park extends LinearOpMode {
 
     // The IMU sensor object
     BNO055IMU imu;
@@ -137,22 +124,28 @@ public class GOODPushbotAutoDriveByGyro_Linear extends LinearOpMode {
 
         waitForStart();
 
-
-        // Step through each leg of the path,
-        // Put a hold after each turn
-//        Terry.gyroDrive(DRIVE_SPEED,57,0.0);
-//        Terry.gyroDrive(DRIVE_SPEED,-57,0);
-        //Kelly.slideByTime(SLIDE_SPEED, 2);
-
-        gyroDrive(DRIVE_SPEED, 20, 0.0);    // Drive FWD 5 inches
-        gyroDrive(DRIVE_SPEED, -20, 0.0);    // Drive FWD 5 inches
-       // gyroSlideR(SLIDE_SPEED, 24.0, 0.0);  //slide right 24 inches
-       /* Terry.gyroHold(TURN_SPEED,0,2);
-        Terry.gyroSlideL(SLIDE_SPEED, 45.0, 0.0);  //slide left 45 inches
-        Terry.gyroHold(TURN_SPEED,0,2);
-        Terry.gyroDrive(DRIVE_SPEED,10,0); //drive forward 10 inches
-        Terry.gyroHold(TURN_SPEED,0,2);
-        Terry.gyroSlideR(SLIDE_SPEED, 48.0, 0.0);  //slide right 48 inches*/
+       // Start with duck wheel facing duck carousel
+      //  gyroSlideR(SLIDE_SPEED,6,0);
+       /* while (opModeIsActive()) {
+            Kelly.slideR(SLIDE_SPEED);
+        }*/
+       // Drive back until duck wheel is touching side of duck carousel
+     /*   gyroDrive(DRIVE_SPEED, -36,0);
+       // To deliver duck, spin duck carousel until duck falls off onto mat
+        Kelly.runtime.reset();
+        while (opModeIsActive() && (Kelly.runtime.seconds() < 1.6)) {
+            Kelly.duckArmDrive.setPower(1);
+        }
+        // Turn*/
+        /*
+        gyroTurn(TURN_SPEED,45);
+       // Slide right towards storage unit
+        gyroSlideR(SLIDE_SPEED,30,0);
+        //turn to be parallel with storage unit
+        gyroTurn(TURN_SPEED,-45);
+        //Slide right until fully parked in storage unit
+        gyroSlideR(SLIDE_SPEED,12,0);
+*/
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -263,6 +256,7 @@ public class GOODPushbotAutoDriveByGyro_Linear extends LinearOpMode {
             Kelly.rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
+
 
 
     /**
@@ -464,4 +458,26 @@ public class GOODPushbotAutoDriveByGyro_Linear extends LinearOpMode {
     }
 */
 //end code from imu sample code
+public void gyroSlideR (double speed, double distance, double angle) {
+    Kelly.rightDrive.setDirection(DcMotor.Direction.FORWARD);
+    Kelly.leftDrive.setDirection(DcMotor.Direction.FORWARD);
+    Kelly.rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+    Kelly.leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+    gyroDrive(speed, distance, angle);
+    Kelly.rightDrive.setDirection(DcMotor.Direction.REVERSE);
+    Kelly.leftDrive.setDirection(DcMotor.Direction.REVERSE);
+    Kelly.rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+    Kelly.leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+}
+    public void gyroSlideL (double speed, double distance, double angle) {
+        Kelly.rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        Kelly.leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        Kelly.rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        Kelly.leftDrive.setDirection(DcMotor.Direction.REVERSE);
+        gyroDrive(speed, distance, angle);
+        Kelly.rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        Kelly.leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        Kelly.rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        Kelly.leftDrive.setDirection(DcMotor.Direction.FORWARD);
+    }
 }
