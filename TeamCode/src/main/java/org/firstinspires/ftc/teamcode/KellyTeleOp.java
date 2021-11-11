@@ -156,7 +156,11 @@ public class KellyTeleOp extends LinearOpMode {
 
 
             if(gamepad2.right_trigger > 0.2) {
-                Kelly.duckspin(duckspinPower);
+                Kelly.duckArmDrive.setPower(1);
+                Kelly.rightduckArmDrive.setPower(1);
+            } else if (gamepad2.right_trigger < 0.2 && gamepad2.right_trigger > -0.2) {
+                Kelly.rightduckArmDrive.setPower(0);
+                Kelly.duckArmDrive.setPower(0);
             }
             }
         }

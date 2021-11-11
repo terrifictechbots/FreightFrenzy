@@ -34,19 +34,11 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
-import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-
-import java.util.List;
-
 //import org.firstinspires.ftc.Terrycontroller.external.samples.HardwarePushbot;
 
-@Autonomous(name="Blue Duck Park", group="Linear Opmode")
+@Autonomous(name="Red Drop Warehouse Park", group="Linear Opmode")
 //@Disabled
-public class Blue_Duck_Park extends LinearOpMode {
+public class Red_Drop_Warehouse_Park extends LinearOpMode {
 
     /* Declare OpMode members. */
     KellyHardware Kelly   = new KellyHardware();   // Use a Pushbot's hardware
@@ -61,6 +53,7 @@ public class Blue_Duck_Park extends LinearOpMode {
     static final double     TURN_SPEED              = 0.5;
     static final double SLIDEL_SPEED = 0.8;
     static final double SLIDER_SPEED = 0.8;
+    static final double ARM_SPEED = 1;
     static final double STOP = 0;
 
 
@@ -96,38 +89,44 @@ public class Blue_Duck_Park extends LinearOpMode {
 
         waitForStart();
 
-        //Start with duck wheel facing duck carousel
+        //start with back facing warehouse
+       // Kelly.servoPickupClamp.setPosition(1);
+        //lift pickup arm up to put block on top level
+        encoderDrive(ARM_SPEED,0,0,0,0,-1.2);
+        // Slide until in line with shipping hub
+        encoderDrive(SLIDER_SPEED,43,-43,-43,43,0);
+        //go forward until next to shipping hub
+        encoderDrive(DRIVE_SPEED,7,7,7,7,0);
+        //let go of servo, dropping block onto highest level
+        Kelly.servoPickupClamp.setPosition(0);
+        sleep(1000);
+        //move back from shipping hub
+        encoderDrive(DRIVE_SPEED,-9,-9,-9,-9,0);
+        //move arm back down
+        encoderDrive(ARM_SPEED/4,0,0,0,0,.7);
         sleep(500);
-        //slide away from wall
-        encoderDrive(SLIDER_SPEED/2,7,-7,-7,7);
-
-        //Drive back until duck wheel is touching side of duck carousel
-        encoderDrive(DRIVE_SPEED/2, -33.5, -33.5, -33.5, -33.5);
-
-        //To deliver duck, spin duck carousel until duck falls off onto mat
-        Kelly.runtime.reset();
-        while (opModeIsActive() && (Kelly.runtime.seconds() < 2.5)) {
-            Kelly.duckArmDrive.setPower(1);
-        }
-
-        Kelly.duckArmDrive.setPower(0);
-
-        //Slide right until fully parked in storage unit
-        encoderDrive(SLIDER_SPEED,25,-25,-25,25);
+        //slide away from shipping hub
+        encoderDrive(SLIDEL_SPEED,-15,15,15,-15,0);
+        //drive forward to gain momentum for driving back over barriers into warehouse
+        encoderDrive(DRIVE_SPEED,10,10,10,10,0);
+        //drive back, over barriers, into warehouse to park
+        encoderDrive(DRIVE_SPEED*1.25,-50,-50,-50,-50,0);
 
             Kelly.leftDrive.setPower(0);
             Kelly.rightDrive.setPower(0);
             Kelly.leftBackDrive.setPower(0);
             Kelly.rightBackDrive.setPower(0);
+            Kelly.pickupArmDrive.setPower(0);
         }
 
 
     public void encoderDrive(double speed,
-                             double leftInches, double rightInches, double leftBackInches, double rightBackInches) {
+                             double leftInches, double rightInches, double leftBackInches, double rightBackInches, double armInches) {
                 int newLeftTarget;
                 int newRightTarget;
                 int newLeftBackTarget;
                 int newRightBackTarget;
+                int newArmTarget;
 
                 // Ensure that the opmode is still active
                 if (opModeIsActive()) {
@@ -137,21 +136,25 @@ public class Blue_Duck_Park extends LinearOpMode {
                     newRightTarget = Kelly.rightDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
                     newLeftBackTarget = Kelly.leftBackDrive.getCurrentPosition() + (int)(leftBackInches * COUNTS_PER_INCH);
                     newRightBackTarget = Kelly.rightBackDrive.getCurrentPosition() + (int)(rightBackInches * COUNTS_PER_INCH);
+                    newArmTarget = Kelly.pickupArmDrive.getCurrentPosition() + (int)(armInches * COUNTS_PER_INCH);
 
 
                     Kelly.leftDrive.setTargetPosition(newLeftTarget);
                     Kelly.rightDrive.setTargetPosition(newRightTarget);
                     Kelly.leftBackDrive.setTargetPosition(newLeftBackTarget);
                     Kelly.rightBackDrive.setTargetPosition(newRightBackTarget);
+                    Kelly.pickupArmDrive.setTargetPosition(newArmTarget);
 
+                    Kelly.pickupArmDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     // reset the timeout time and start motion.
                     runtime.reset();
                     Kelly.leftDrive.setPower(Math.abs(speed));
                     Kelly.rightDrive.setPower(Math.abs(speed));
                     Kelly.leftBackDrive.setPower(Math.abs(speed));
                     Kelly.rightBackDrive.setPower(Math.abs(speed));
+                    Kelly.pickupArmDrive.setPower(Math.abs(speed));
 
-                    while (opModeIsActive() && (Kelly.rightDrive.isBusy() || Kelly.leftBackDrive.isBusy() || Kelly.leftDrive.isBusy() || Kelly.leftBackDrive.isBusy()))
+                    while (opModeIsActive() && (Kelly.rightDrive.isBusy() || Kelly.leftBackDrive.isBusy() || Kelly.leftDrive.isBusy() || Kelly.leftBackDrive.isBusy()||Kelly.pickupArmDrive.isBusy()))
                     {
 
                         // Display it for the driver.
@@ -168,6 +171,7 @@ public class Blue_Duck_Park extends LinearOpMode {
                     Kelly.rightDrive.setPower(0);
                     Kelly.leftBackDrive.setPower(0);
                     Kelly.rightBackDrive.setPower(0);
+                    Kelly.pickupArmDrive.setPower(-.2);
 
                     Kelly.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     Kelly.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -178,13 +182,41 @@ public class Blue_Duck_Park extends LinearOpMode {
                     Kelly.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     Kelly.leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     Kelly.rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    Kelly.pickupArmDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     // Turn On RUN_TO_POSITION
                     Kelly.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     Kelly.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     Kelly.leftBackDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     Kelly.rightBackDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        }
+                }
+       /* public void encoderArmDrive(double armspeed,double armInches) {
+            int newArmTarget;
+
+            // Ensure that the opmode is still active
+            if (opModeIsActive()) {
+
+                // Determine new target position, and pass to motor controller
+                newArmTarget = Kelly.pickupArmDrive.getCurrentPosition() + (int)(armInches * COUNTS_PER_INCH);
+                Kelly.pickupArmDrive.setTargetPosition(newArmTarget);
+
+                // Turn On RUN_TO_POSITION
+                Kelly.pickupArmDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                // reset the timeout time and start motion.
+                runtime.reset();
+                Kelly.pickupArmDrive.setPower(Math.abs(speed));
+                while (opModeIsActive() &&
+                        (Kelly.pickupArmDrive.isBusy())) {
+                }
+
+                // Stop all motion;
+                Kelly.pickupArmDrive.setPower(-.2);
+
+                // Turn off RUN_TO_POSITION
+                Kelly.pickupArmDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+        }*/
     }
 }
 

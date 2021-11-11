@@ -203,10 +203,10 @@ public class KellyHardware {
         rightBackDrive.setPower(spinDrive);
     }
 
-    public void duckspin(double duckspinDrive){
+/*    public void duckspin(double duckspinDrive){
         duckArmDrive.setDirection(DcMotor.Direction.FORWARD);
         rightduckArmDrive.setDirection(DcMotor.Direction.FORWARD);
-    }
+    }*/
     public void stop() {
         this.drive(0);
     }
@@ -261,9 +261,9 @@ public class KellyHardware {
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
         pickupArmDrive.setDirection(DcMotor.Direction.FORWARD);
         duckArmDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightduckArmDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightduckArmDrive.setDirection(DcMotor.Direction.REVERSE);
 
-        servoPickupClamp.setPosition(0.5);
+        servoPickupClamp.setPosition(1);
 
     }
 }
