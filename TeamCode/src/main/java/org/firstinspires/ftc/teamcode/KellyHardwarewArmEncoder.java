@@ -29,27 +29,20 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
 
-import java.util.Locale;
-
-
-
-public class KellyHardware {
+public class KellyHardwarewArmEncoder {
 //
     static final double     COUNTS_PER_MOTOR_REV    = 1120 ;    // eg: TETRIX Motor Encoder - 1440
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     DRIVE_GEAR_REDUCTION    = 1 ;     // This is < 1.0 if geared UP
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
@@ -86,7 +79,7 @@ public class KellyHardware {
     private ElapsedTime period = new ElapsedTime();
 
     /* Constructor */
-    public KellyHardware() {
+    public KellyHardwarewArmEncoder() {
 
     }
 
@@ -218,6 +211,37 @@ public class KellyHardware {
             // do nothing
         }
     }
+    public void encoderDrive(double speed, double armInches) {
+        int newArmTarget;
+            // Determine new target position, and pass to motor controller
+            newArmTarget = pickupArmDrive.getCurrentPosition() + (int)(armInches * COUNTS_PER_INCH);
+
+            //if statement is to bring the arm back down to original position after lifting it just enough for the bottom tier
+            if (newArmTarget<-.6){ //(-0.6 is the distance we need to move the arm to align with bottom tier)
+                newArmTarget=-54; //this is (-0.6*counts_per_inch), which is found in line 215
+            }
+            pickupArmDrive.setTargetPosition(newArmTarget);
+        /*telemetry.addData("TargetPos",  "Running to %7d :%7d :%7d :%7d", newArmTarget);
+        telemetry.addData("CurrentPos",  "Running at %7d :%7d :%7d :%7d",
+                pickupArmDrive.getCurrentPosition());
+        telemetry.update();*/
+
+            // Turn On RUN_TO_POSITION
+            pickupArmDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+           pickupArmDrive.setPower(Math.abs(speed));
+            while (pickupArmDrive.isBusy()) {
+            }
+
+            // Stop all motion;
+           pickupArmDrive.setPower(-0.2);
+
+            // Turn off RUN_TO_POSITION
+          pickupArmDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
 
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {

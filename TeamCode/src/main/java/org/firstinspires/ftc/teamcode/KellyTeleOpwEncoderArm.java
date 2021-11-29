@@ -49,14 +49,19 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="KellyTeleOp", group="Linear Opmode")
+@TeleOp(name="KellyTeleOp NEW", group="Linear Opmode")
 //@Disabled
-public class KellyTeleOp extends LinearOpMode {
+public class KellyTeleOpwEncoderArm extends LinearOpMode {
 
     // Declare OpMode members.
-    private KellyHardware Kelly = new KellyHardware();
+    private KellyHardwarewArmEncoder Kelly = new KellyHardwarewArmEncoder();
     private ElapsedTime runtime = new ElapsedTime();
-
+    static final double     COUNTS_PER_MOTOR_REV    = 288 ;    // eg: TETRIX Motor Encoder
+    static final double     DRIVE_GEAR_REDUCTION    = 1 ;     // This is < 1.0 if geared UP
+    static final double     WHEEL_DIAMETER_INCHES   = 20 ;     // For figuring circumference
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+            (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     ARM_SPEED = 1;
 
     @Override
     public void runOpMode() {
@@ -76,6 +81,9 @@ public class KellyTeleOp extends LinearOpMode {
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
+        Kelly.pickupArmDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        Kelly.pickupArmDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -112,7 +120,6 @@ public class KellyTeleOp extends LinearOpMode {
             } else {
                 Kelly.servoPickupClamp.setPosition(1);
             }
-
 
             // Send calculated power to wheels
 
@@ -161,6 +168,11 @@ public class KellyTeleOp extends LinearOpMode {
             } else if (gamepad2.right_trigger < 0.2 && gamepad2.right_trigger > -0.2) {
                 Kelly.rightduckArmDrive.setPower(0);
                 Kelly.duckArmDrive.setPower(0);
+            }
+
+            //a button for bottom tier:
+            if (gamepad2.a){
+                Kelly.encoderDrive(ARM_SPEED, -.6);
             }
             }
         }

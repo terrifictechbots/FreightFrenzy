@@ -106,7 +106,7 @@ public class Blue_Duck_Drop extends LinearOpMode {
         //Slide right in line with shipping hub
         encoderDrive(SLIDER_SPEED,32,-32,-32,32,0);
         //lift pickup arm up to put block on top level
-        encoderDrive(ARM_SPEED,0,0,0,0,-1.2);
+        encoderDrive(ARM_SPEED,0,0,0,0,-1);
         //go forward until next to shipping hub
         encoderDrive(DRIVE_SPEED,36,36,36,36,0);
         //let go of servo, dropping block onto highest level

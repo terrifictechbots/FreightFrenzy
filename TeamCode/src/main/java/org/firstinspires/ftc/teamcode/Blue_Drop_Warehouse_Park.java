@@ -92,7 +92,7 @@ public class Blue_Drop_Warehouse_Park extends LinearOpMode {
         //start with back facing warehouse
        // Kelly.servoPickupClamp.setPosition(1);
         //lift pickup arm up to put block on top level
-        encoderDrive(ARM_SPEED,0,0,0,0,-1.2);
+        encoderDrive(ARM_SPEED,0,0,0,0,-1);
         // Slide until in line with shipping hub
         encoderDrive(SLIDEL_SPEED,-43,43,43,-43,0);
         //go forward until next to shipping hub

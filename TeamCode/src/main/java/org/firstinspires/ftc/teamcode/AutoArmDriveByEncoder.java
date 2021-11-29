@@ -65,7 +65,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @Autonomous(name="Arm Drive by Encoder", group="Pushbot")
-//@Disabled
+@Disabled
 public class AutoArmDriveByEncoder extends LinearOpMode {
 
     /* Declare OpMode members. */
